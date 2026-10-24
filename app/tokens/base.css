@@ -1,0 +1,11 @@
+body{background:var(--bg-app);color:var(--text-body);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;margin:0;padding:0}
+a{color:var(--lake-700)}a:hover{color:var(--lake-600)}
+::selection{background:var(--lake-200);color:var(--ink-900)}
+.font-display{font-family:var(--font-display)}.font-mono{font-family:var(--font-mono)}.font-sans{font-family:var(--font-sans)}
+.lf-display{font-family:var(--font-display);font-weight:400;letter-spacing:-0.02em;line-height:1.05;color:var(--text-strong)}
+.lf-eyebrow{font-family:var(--font-mono);font-size:12px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}
+.lf-figure{font-family:var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:-0.01em}
+@keyframes vpulse{0%,100%{opacity:.22;transform:scale(.82)}50%{opacity:1;transform:scale(1)}}
+@keyframes vspin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.animate-vpulse{animation:vpulse 1.8s ease-in-out infinite}.animate-vspin{animation:vspin 14s linear infinite}.animate-fadeIn{animation:fadeIn .2s ease-out forwards}
