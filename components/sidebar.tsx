@@ -6,6 +6,7 @@ import {
   GraduationCap,
   HelpCircle,
   LayoutDashboard,
+  Link2,
   Receipt,
   School,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const NAV = [
   { href: "/ocupacoes", label: "Ocupações", icon: Briefcase },
   { href: "/cursos", label: "Cursos", icon: BookOpen },
   { href: "/faculdades", label: "Faculdades", icon: School },
+  { href: "/ofertas", label: "Ofertas", icon: Link2 },
   { href: "/orders", label: "Orders", icon: Receipt },
 ];
 

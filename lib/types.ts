@@ -121,3 +121,18 @@ export interface PaymentEvent {
 export interface OrdersPage extends Page<Order> {
   totals: { status: OrderStatus; count: number; amountCents: number }[];
 }
+
+export type OfferKind = "livre" | "tecnico" | "graduacao_ead";
+
+export interface Offer {
+  id: string;
+  provider: string;
+  title: string;
+  trackingUrl: string;
+  kind: OfferKind;
+  minAge: number;
+  dims: RiasecDim[];
+  careerSlugs: string[];
+  active: boolean;
+  _count?: { clicks: number };
+}
