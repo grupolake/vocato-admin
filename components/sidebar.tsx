@@ -9,6 +9,7 @@ import {
   Link2,
   Receipt,
   School,
+  Tag
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,6 +21,7 @@ const NAV = [
   { href: "/cursos", label: "Cursos", icon: BookOpen },
   { href: "/faculdades", label: "Faculdades", icon: School },
   { href: "/ofertas", label: "Ofertas", icon: Link2 },
+  { href: "/cupons", label: "Cupons", icon: Tag },
   { href: "/orders", label: "Orders", icon: Receipt },
 ];
 

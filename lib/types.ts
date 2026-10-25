@@ -98,6 +98,10 @@ export interface Order {
   payerEmail: string;
   method: "pix" | "credit_card";
   amountCents: number;
+  originalAmountCents?: number;
+  discountCents?: number;
+  couponId?: string | null;
+  couponCode?: string | null;
   currency: string;
   status: OrderStatus;
   gateway: string;
@@ -135,4 +139,36 @@ export interface Offer {
   careerSlugs: string[];
   active: boolean;
   _count?: { clicks: number };
+}
+
+export type DiscountType = "percentage" | "fixed_cents" | "vip_free";
+export type CouponKind = "influencer" | "campaign" | "support" | "special";
+
+export interface Coupon {
+  id: string;
+  code: string;
+  description: string | null;
+  discountType: DiscountType;
+  discountValue: number;
+  kind: CouponKind;
+  influencerName: string | null;
+  influencerEmail: string | null;
+  influencerSocial: string | null;
+  commissionPct: number;
+  maxUses: number | null;
+  usedCount: number;
+  startsAt: string | null;
+  expiresAt: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { orders: number };
+  orders?: Order[];
+}
+
+export interface CouponInfluencerMetrics {
+  ordersCount: number;
+  paidOrdersCount: number;
+  grossRevenueCents: number;
+  commissionCents: number;
 }
