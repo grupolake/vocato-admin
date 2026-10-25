@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ActionForm } from "@/components/ui/action-form";
 import { Badge } from "@/components/ui/badge";
+import { LinkButton } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/fields";
 import { PageHeader, Panel } from "@/components/ui/layout";
 import { DataTable } from "@/components/ui/table";
@@ -35,7 +36,14 @@ export default async function QuestionnairesPage() {
           },
           {
             header: "Perguntas",
-            cell: (v) => <span className="lf-figure">{v.questions.length}</span>,
+            cell: (v) => (
+              <Link
+                href={`/questionarios/${v.key}`}
+                className="lf-figure font-semibold underline-offset-2 hover:underline"
+              >
+                {v.questions.length}
+              </Link>
+            ),
           },
           {
             header: "Sem tradução",
@@ -52,6 +60,14 @@ export default async function QuestionnairesPage() {
           {
             header: "Ativada em",
             cell: (v) => <span className="lf-figure">{dateTime(v.activatedAt)}</span>,
+          },
+          {
+            header: "",
+            cell: (v) => (
+              <LinkButton href={`/questionarios/${v.key}`} variant="outline" size="sm">
+                Ver perguntas
+              </LinkButton>
+            ),
           },
         ]}
       />
