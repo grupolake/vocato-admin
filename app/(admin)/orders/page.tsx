@@ -7,7 +7,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { DataTable } from "@/components/ui/table";
 import { api } from "@/lib/api";
 import { brl, dateTime, first, pageNumber } from "@/lib/format";
-import { STATUS_TONE } from "@/lib/order-status";
+import { STATUS_TONE, STATUS_LABEL } from "@/lib/order-status";
 import type { OrdersPage } from "@/lib/types";
 
 export default async function OrdersPage({ searchParams }: PageProps<"/orders">) {
@@ -17,6 +17,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
     method: first(sp.method),
     gateway: first(sp.gateway),
     email: first(sp.email),
+    couponCode: first(sp.couponCode),
     from: first(sp.from),
     to: first(sp.to),
   };
@@ -34,7 +35,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
         {data.totals.map((t) => (
           <div key={t.status} className="rounded-[20px] bg-tile p-4">
-            <Badge tone={STATUS_TONE[t.status]}>{t.status}</Badge>
+            <Badge tone={STATUS_TONE[t.status]}>{STATUS_LABEL[t.status] ?? t.status}</Badge>
             <p className="lf-figure mt-2 text-2xl font-semibold text-strong">
               {t.count}
             </p>
@@ -49,13 +50,16 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
         <Field label="E-mail">
           <Input name="email" defaultValue={filters.email} placeholder="buscar…" />
         </Field>
+        <Field label="Cupom">
+          <Input name="couponCode" defaultValue={filters.couponCode} placeholder="ex: PROFISSAO10" />
+        </Field>
         <Field label="Status">
           <Select
             name="status"
             defaultValue={filters.status ?? ""}
             placeholder="Todos"
             options={(["pending", "paid", "failed", "expired"] as const).map(
-              (v) => ({ value: v, label: v }),
+              (v) => ({ value: v, label: STATUS_LABEL[v] }),
             )}
           />
         </Field>
@@ -65,8 +69,8 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
             defaultValue={filters.method ?? ""}
             placeholder="Todos"
             options={[
-              { value: "pix", label: "pix" },
-              { value: "credit_card", label: "cartão" },
+              { value: "pix", label: "Pix" },
+              { value: "credit_card", label: "Cartão de Crédito" },
             ]}
           />
         </Field>
@@ -100,14 +104,34 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
               </Link>
             ),
           },
-          { header: "Método", cell: (o) => o.method },
+          { header: "Método", cell: (o) => o.method === "pix" ? "Pix" : "Cartão" },
+          {
+            header: "Cupom",
+            cell: (o) =>
+              o.couponCode ? (
+                <Link href={`/cupons?search=${encodeURIComponent(o.couponCode)}`}>
+                  <Badge tone="positive">{o.couponCode}</Badge>
+                </Link>
+              ) : (
+                <span className="text-xs text-muted">—</span>
+              ),
+          },
           {
             header: "Valor",
-            cell: (o) => <span className="lf-figure">{brl(o.amountCents)}</span>,
+            cell: (o) => (
+              <div className="flex flex-col">
+                <span className="lf-figure font-semibold">{brl(o.amountCents)}</span>
+                {o.discountCents && o.discountCents > 0 ? (
+                  <span className="text-[11px] text-muted line-through">
+                    {brl(o.originalAmountCents || o.amountCents + o.discountCents)}
+                  </span>
+                ) : null}
+              </div>
+            ),
           },
           {
             header: "Status",
-            cell: (o) => <Badge tone={STATUS_TONE[o.status]}>{o.status}</Badge>,
+            cell: (o) => <Badge tone={STATUS_TONE[o.status]}>{STATUS_LABEL[o.status] ?? o.status}</Badge>,
           },
           { header: "Gateway", cell: (o) => o.gateway },
         ]}

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Notice, PageHeader, Panel } from "@/components/ui/layout";
 import { ApiError, api } from "@/lib/api";
-import type { QuestionnaireVersion } from "@/lib/types";
+import type { QuestionnaireVersion, Question } from "@/lib/types";
 import {
   activateVersion,
   addQuestion,
@@ -31,6 +31,15 @@ export default async function QuestionnairePage({
     });
   const draft = v.status === "draft";
   const errors = v.validation ?? [];
+
+  // Lei de Miller (Chunking): Agrupa as perguntas por bloco (1 a 5)
+  const blocksMap = new Map<number, Question[]>();
+  for (const q of v.questions) {
+    const list = blocksMap.get(q.block) ?? [];
+    list.push(q);
+    blocksMap.set(q.block, list);
+  }
+  const sortedBlocks = Array.from(blocksMap.keys()).sort((a, b) => a - b);
 
   return (
     <>
@@ -89,57 +98,94 @@ export default async function QuestionnairePage({
         Escala de resposta (fixa, não editável): {LIKERT.map((l, i) => `${i + 1} ${l}`).join(" · ")}
       </p>
 
-      <ol className="flex flex-col gap-3">
-        {v.questions.map((q, idx) => (
-          <li
-            key={q.id}
-            className="rounded-[20px] border border-line-subtle bg-card p-4"
-          >
-            <div className="mb-3 flex items-center justify-between">
-              <span className="lf-eyebrow">
-                #{q.order} · {q.dim} · bloco {q.block}
-                {!q.textPtBr?.trim() && (
-                  <span className="ml-2 text-warning">sem tradução</span>
-                )}
-              </span>
-              {draft && (
-                <span className="flex gap-2">
-                  <form action={moveQuestion.bind(null, key, q.order, -1)}>
-                    <Button type="submit" variant="outline" size="sm" disabled={idx === 0}>
-                      ↑
-                    </Button>
-                  </form>
-                  <form action={moveQuestion.bind(null, key, q.order, 1)}>
-                    <Button
-                      type="submit"
-                      variant="outline"
-                      size="sm"
-                      disabled={idx === v.questions.length - 1}
-                    >
-                      ↓
-                    </Button>
-                  </form>
-                  <ConfirmForm action={deleteQuestion.bind(null, key, q.order)} />
+      {/* Agrupamento em Blocos (Lei de Miller & Checkpoint Q24) */}
+      <div className="flex flex-col gap-8">
+        {sortedBlocks.map((blockNum) => {
+          const blockQuestions = blocksMap.get(blockNum) ?? [];
+          const isCheckpointBlock = blockNum === 2;
+
+          return (
+            <section key={blockNum} className="flex flex-col gap-3">
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-tile border border-line-subtle">
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-sm text-strong">
+                    Bloco {blockNum}
+                  </span>
+                  <span className="text-xs text-secondary font-mono">
+                    ({blockQuestions.length} perguntas)
+                  </span>
+                  {isCheckpointBlock && (
+                    <Badge tone="positive">Checkpoint Fast Mode (24 Qs)</Badge>
+                  )}
+                </div>
+                <span className="text-xs text-muted">
+                  Perguntas #{blockQuestions[0]?.order} a #{blockQuestions[blockQuestions.length - 1]?.order}
                 </span>
-              )}
-            </div>
-            {draft ? (
-              <ActionForm action={updateQuestion.bind(null, key, q.order)}>
-                <QuestionFields value={q} />
-              </ActionForm>
-            ) : (
-              <div className="grid gap-1 text-[14.5px]">
-                <p className="text-muted">{q.textEn}</p>
-                <p className="text-strong">{q.textPtBr}</p>
               </div>
-            )}
-          </li>
-        ))}
-      </ol>
+
+              <ol className="flex flex-col gap-3">
+                {blockQuestions.map((q) => {
+                  const globalIdx = v.questions.findIndex((item) => item.id === q.id);
+                  return (
+                    <li
+                      key={q.id}
+                      className="rounded-[20px] border border-line-subtle bg-card p-4 shadow-xs"
+                    >
+                      <div className="mb-3 flex items-center justify-between">
+                        <span className="lf-eyebrow">
+                          #{q.order} · {q.dim} · bloco {q.block}
+                          {!q.textPtBr?.trim() && (
+                            <span className="ml-2 text-warning font-semibold">sem tradução</span>
+                          )}
+                        </span>
+                        {draft && (
+                          <div className="flex items-center gap-2">
+                            <form action={moveQuestion.bind(null, key, q.order, -1)}>
+                              <Button type="submit" variant="outline" size="sm" disabled={globalIdx === 0}>
+                                ↑
+                              </Button>
+                            </form>
+                            <form action={moveQuestion.bind(null, key, q.order, 1)}>
+                              <Button
+                                type="submit"
+                                variant="outline"
+                                size="sm"
+                                disabled={globalIdx === v.questions.length - 1}
+                              >
+                                ↓
+                              </Button>
+                            </form>
+                            {/* Separador de segurança (Lei de Fitts: previne clique destrutivo acidental) */}
+                            <div className="h-4 w-px bg-line-subtle mx-1" />
+                            <ConfirmForm
+                              action={deleteQuestion.bind(null, key, q.order)}
+                              message={`Tem certeza que deseja excluir a pergunta #${q.order}?`}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      {draft ? (
+                        <ActionForm action={updateQuestion.bind(null, key, q.order)}>
+                          <QuestionFields value={q} />
+                        </ActionForm>
+                      ) : (
+                        <div className="grid gap-1 text-[14.5px]">
+                          <p className="text-muted text-xs">{q.textEn}</p>
+                          <p className="text-strong font-medium">{q.textPtBr}</p>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          );
+        })}
+      </div>
 
       {draft && (
         <>
-          <Panel title="Adicionar pergunta" className="mt-6">
+          <Panel title="Adicionar pergunta" className="mt-8">
             <ActionForm action={addQuestion.bind(null, key)} submitLabel="Adicionar">
               <QuestionFields />
             </ActionForm>

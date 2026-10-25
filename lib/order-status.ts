@@ -9,3 +9,10 @@ export const STATUS_TONE: Record<
   failed: "negative",
   expired: "neutral",
 };
+
+export const STATUS_LABEL: Record<OrderStatus, string> = {
+  paid: "Pago",
+  pending: "Pendente",
+  failed: "Falhou",
+  expired: "Expirado",
+};
